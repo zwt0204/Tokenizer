@@ -9,7 +9,7 @@
 import numpy as np
 import pandas as pd
 import re
-from numpy import log, min
+from numpy import log
 
 f = open('D:\mygit\Tokenizer\data\data.txt', 'r', encoding='utf8')  # 读取文章
 # 将整个txt读取为一个字符串
@@ -29,13 +29,11 @@ myre = {2: '(..)', 3: '(...)', 4: '(....)', 5: '(.....)', 6: '(......)', 7: '(..
 min_count = 10
 # 录取词语最低支持度，1代表着随机组合
 min_support = 30
-# 录取词语最低信息熵，越大说明越有可能独立成词
 min_s = 3
-# 候选词语的最大字数
-max_sep = 4
+max_sep = 4  # 候选词语的最大字数
 # 保存结果用。
 t = []
-# 逐字统计
+# 逐字统计,统计list中各个元素出现次数，返回两列，第一列为字，第二列为对应出现次数
 t.append(pd.Series(list(s)).value_counts())
 # 统计总字数
 tsum = t[0].sum()
@@ -47,15 +45,20 @@ for m in range(2, max_sep + 1):
     t.append([])
     # 生成所有可能的m字词
     for i in range(m):
+        # print(t[m - 1])
+        # print(re.findall(myre[m], s[i:]))
         t[m - 1] = t[m - 1] + re.findall(myre[m], s[i:])
     # 逐词统计
     t[m - 1] = pd.Series(t[m - 1]).value_counts()
     # 最小次数筛选
+    # print(t[m - 1])
     t[m - 1] = t[m - 1][t[m - 1] > min_count]
     tt = t[m - 1][:]
+    # print(tt)
     for k in range(m - 1):
+        # 最小支持度筛选。
         qq = np.array(list(map(lambda ms: tsum * t[m - 1][ms] / t[m - 2 - k][ms[:m - 1 - k]] / t[k][ms[m - 1 - k:]],
-                               tt.index))) > min_support  # 最小支持度筛选。
+                               tt.index))) > min_support
         tt = tt[qq]
     rt.append(tt.index)
 
@@ -67,7 +70,8 @@ def cal_S(sl):
 
 for i in range(2, max_sep + 1):
     print(u'正在进行%s字词的最大熵筛选(%s)...' % (i, len(rt[i - 2])))
-    pp = []  # 保存所有的左右邻结果
+    # 保存所有的左右邻结果
+    pp = []
     for j in range(i + 2):
         pp = pp + re.findall('(.)%s(.)' % myre[i], s[j:])
     # 先排序，这个很重要，可以加快检索速度
@@ -75,6 +79,7 @@ for i in range(2, max_sep + 1):
     # 作交集
     index = np.sort(np.intersect1d(rt[i - 2], pp.index))
     # 下面两句分别是左邻和右邻信息熵筛选
+    print(list(map(lambda s: cal_S(pd.Series(pp[0][s]).value_counts()), index)))
     index = index[np.array(list(map(lambda s: cal_S(pd.Series(pp[0][s]).value_counts()), index))) > min_s]
     rt[i - 2] = index[np.array(list(map(lambda s: cal_S(pd.Series(pp[2][s]).value_counts()), index))) > min_s]
 
