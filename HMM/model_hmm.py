@@ -12,7 +12,6 @@ import numpy as np
 STATES = ['B', 'M', 'E', 'S']
 array_A = {}  # 状态转移概率矩阵
 array_B = {}  # 发射概率矩阵
-array_E = {}  # 测试集存在的字符，但在训练集中不存在，发射概率矩阵
 array_Pi = {}  # 初始状态分布
 word_set = set()  # 训练数据集中所有字的集合
 count_dic = {}  # ‘B,M,E,S’每个状态在训练集中出现的次数
@@ -82,6 +81,7 @@ def Viterbi(sentence, array_pi, array_a, array_b):
     # 动态规划表
     tab = [{}]
     path = {}
+    # 初始化状态
     if sentence[0] not in array_b['B']:
         for state in STATES:
             if state == 'S':
@@ -94,6 +94,8 @@ def Viterbi(sentence, array_pi, array_a, array_b):
         tab[0][state] = array_pi[state] + array_b[state][sentence[0]]
         # tab[t][state]表示时刻t到达state状态的所有路径中，概率最大路径的概率值
         path[state] = [state]
+    # {'B': -8.708450118874179, 'M': -3.14e+100, 'E': -3.14e+100, 'S': -12.172927140576377}
+    # print(tab[0])
     for i in range(1, len(sentence)):
         tab.append({})
         new_path = {}
@@ -122,12 +124,13 @@ def Viterbi(sentence, array_pi, array_a, array_b):
                         sentence[i]]
                 items.append((prob, state1))
             # bset:(prob,state)
+            # [(-354.30264436332897, 'B'), (-357.85488557051366, 'M'), (-3.14e+100, 'E'), (-3.14e+100, 'S')]
+            # print(items)
             best = max(items)
             tab[i][state0] = best[0]
             new_path[state0] = path[best[1]] + [state0]
         path = new_path
 
-    data_temp = []
     # path 中存储的是最后一个状态在最佳状态下的前面状态的最佳路径
     prob, state = max([(tab[len(sentence) - 1][state], state) for state in STATES])
     return path[state]
@@ -174,8 +177,8 @@ def tag_seg(sentence, tag):
 
 
 if __name__ == '__main__':
-    trainset = open('CTBtrainingset.txt', encoding='utf-8')   # 读取训练集
-    testset = open('CTBtestingset.txt', encoding='utf-8')   # 读取测试集
+    trainset = open('..\data\HMMwordseg-master\HMMseg\CTBtrainingset.txt', encoding='utf-8')   # 读取训练集
+    testset = open('..\data\HMMwordseg-master\HMMseg\CTBtestingset.txt', encoding='utf-8')   # 读取测试集
 
     Init_Array()
 
@@ -234,6 +237,6 @@ if __name__ == '__main__':
         for i in range(len(seg)):
             list = list + seg[i] + ' '
         output = output + list + '\n'
-    print(output)
-    outputfile = open('output.txt', mode='w', encoding='utf-8')
-    outputfile.write(output)
+    # print(output)
+    # outputfile = open('output.txt', mode='w', encoding='utf-8')
+    # outputfile.write(output)

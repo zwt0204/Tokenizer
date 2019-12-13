@@ -75,6 +75,6 @@ class ac_auto:
             return paths[end][0]
 
 
-demo = ac_auto('test.txt')
-a = demo.max_match_cut('肯德基你好')
+demo = ac_auto('D:\mygit\Tokenizer\data\\test.txt')
+a = demo.max_proba_cut('肯德基你好')
 print(a)
