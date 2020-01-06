@@ -42,7 +42,9 @@ class new_words:
         return data
 
     def cal_S(self, sl):
-        """信息熵计算函数"""
+        """信息熵计算函数
+        P = -(log(n/N) * (n/N))
+        """
         return -((sl / sl.sum()).apply(log) * sl / sl.sum()).sum()
 
     def run(self):
